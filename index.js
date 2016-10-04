@@ -1,27 +1,37 @@
-var watch = require('watch');
-var path  = require('path');
-var fs    = require('fs');
+const watch = require('watch');
+const path  = require('path');
 
-
-function watchFilePlugin(options) {
+function FileWatcherPlugin(options) {
   this.options = options;
+  this.monitor = null;
 }
 
-watchFilePlugin.prototype.apply = function(compiler) {
-  var that = this;
-  compiler.plugin("emit", function(compilation, callback) {
-    var watchFolder = that.options.watchFolder;
-    watch.createMonitor(watchFolder, function(monitor){
-      monitor.files[path.join(watchFolder, "/*."+that.options.watchExtension)]
-      monitor.on("changed", function (f, curr, prev) {
-        compiler.run(function(err) {
-          if(err) throw err;
-          monitor.stop();
+FileWatcherPlugin.prototype.apply = function(compiler) {
+    const onChange = () => {
+        compiler.run((err) => {
+          if(err) {
+              throw err;
+          }
         });
-      });
+    };
+
+    compiler.plugin("watch-run", (compilation, callback) => {
+        const root = this.options.root;
+
+        watch.createMonitor(root, (monitor) => {
+            this.options.files.forEach((file) => {
+                const filePath = path.join(root, file);
+                monitor.files[filePath];
+            });
+
+            monitor.on("created", onChange);
+            monitor.on("changed", onChange);
+            monitor.on("removed", onChange);
+
+            console.log('Monitoring file changes\n');
+            callback();
+        });
     });
-    callback();
-  });
 };
 
-module.exports = watchFilePlugin;
+module.exports = FileWatcherPlugin;
