@@ -7,16 +7,20 @@ function FileWatcherPlugin(options) {
 }
 
 FileWatcherPlugin.prototype.apply = function(compiler) {
-    const onChange = () => {
-        compiler.run((err) => {
-          if(err) {
-              throw err;
-          }
-        });
-    };
-
     compiler.plugin("watch-run", (compilation, callback) => {
         const root = this.options.root;
+        const liveReload = this.options.liveReload;
+
+        const onChange = () => {
+            if (liveReload) {
+                liveReload.lastHash = null; // Force livereload to refresh
+            }
+            compiler.run((err) => {
+              if(err) {
+                  throw err;
+              }
+            });
+        };
 
         watch.createMonitor(root, (monitor) => {
             this.options.files.forEach((file) => {
