@@ -1,6 +1,6 @@
 {
   "name": "file-watcher-webpack-plugin",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Watch additional files that are not under webpack watch",
   "main": "index.js",
   "scripts": {
